@@ -12,7 +12,7 @@ public class DapperDbContext
     public DapperDbContext(IConfiguration configuration)
     {
         _configuration = configuration;
-        _connectionstring = _configuration.GetConnectionString("DefaultConnection");
+        _connectionstring = _configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
     }
 
     public IDbConnection CreateConnection() => new NpgsqlConnection(_connectionstring);

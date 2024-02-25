@@ -14,7 +14,7 @@ public class CepRepository : ICepRepository
         _context = context;
     }
 
-    public async Task<Cep> GetCep(string cep)
+    public async Task<Cep?> GetCep(string cep)
     {
         var query = $"SELECT * FROM cep WHERE cep = '{cep}'";
         using (var connection = _context.CreateConnection())
@@ -26,7 +26,7 @@ public class CepRepository : ICepRepository
 
     public async Task<Cep> AddCep(Cep cep)
     {
-        var query = "INSERT INTO cep(cep, logradouro, complemento, bairro," +
+        const string query = "INSERT INTO cep(cep, logradouro, complemento, bairro," +
                        "localidade, uf, ibge, gia, ddd, siafi) values (@cep, @logradouro, " +
                        "@complemento, @bairro, @localidade, @uf, @ibge, @gia, @ddd, @siafi)";
         

@@ -22,7 +22,7 @@ builder.Services.AddSwaggerGen(options =>
         {
             Name = "Repositório",
             Url = new Uri("https://github.com/triciopo/desafio-backend")
-        },
+        }
     });
 });
 
