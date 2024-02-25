@@ -30,6 +30,28 @@ public class CepService : ICepService
             };
         }
 
+        try
+        {
+            var cepVal = await _repository.GetCep(cep.Cep);
+            if (cepVal != null)
+            {
+                return new CepResponse<Cep>
+                {
+                    StatusCode = HttpStatusCode.Conflict,
+                    Message = "CEP já cadastrado!",
+                    Data = null
+                };
+            }
+        } catch (Exception e)
+        {
+            return new CepResponse<Cep>
+            {
+                StatusCode = HttpStatusCode.InternalServerError,
+                Message = "Falha ao obter conexão com o banco de dados!",
+                Data = null
+            };
+        }
+        
         var client = _clientFactory.CreateClient();
         var response = await client.GetAsync($"https://viacep.com.br/ws/{cep.Cep}/json/");
 
@@ -42,8 +64,18 @@ public class CepService : ICepService
                 Data = null
             };
         }
-
         var json = await response.Content.ReadAsStringAsync();
+        // Viacep retorna um json com a chave "erro" quando o CEP não é encontrado
+        if (json.Contains("erro"))
+        {
+            return new CepResponse<Cep>
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = "CEP não encontrado!",
+                Data = null
+            };
+        }
+        
         var cepDto = JsonSerializer.Deserialize<CepDto>(json);
         var address = new Cep
         {
@@ -58,8 +90,19 @@ public class CepService : ICepService
             Ddd = Convert.ToInt32(cepDto.Ddd),
             Siafi = Convert.ToInt32(cepDto.Siafi)
         };
-
-        await _repository.AddCep(address);
+        try
+        {
+            await _repository.AddCep(address);
+        }
+        catch (Exception e)
+        {
+            return new CepResponse<Cep>
+            {
+                StatusCode = HttpStatusCode.InternalServerError,
+                Message = "Falha ao obter conexão com o banco de dados!",
+                Data = null
+            };
+        }
         return new CepResponse<Cep>
         {
             StatusCode = HttpStatusCode.Created,
@@ -80,17 +123,28 @@ public class CepService : ICepService
             };
         }
 
-        var cepVal = await _repository.GetCep(cep);
-        if (cepVal != null)
+        try
+        {
+            var cepVal = await _repository.GetCep(cep);
+            if (cepVal != null)
+            {
+                return new CepResponse<Cep>
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Message = "CEP obtido com sucesso!",
+                    Data = cepVal
+                };
+            }
+        } catch (Exception e)
         {
             return new CepResponse<Cep>
             {
-                StatusCode = HttpStatusCode.OK,
-                Message = "CEP obtido com sucesso!",
-                Data = cepVal
+                StatusCode = HttpStatusCode.InternalServerError,
+                Message = "Falha ao obter conexão com o banco de dados!",
+                Data = null
             };
         }
-
+        
         return new CepResponse<Cep>
         {
             StatusCode = HttpStatusCode.NotFound,

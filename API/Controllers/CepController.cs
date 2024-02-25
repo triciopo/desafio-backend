@@ -20,11 +20,17 @@ public class CepController : ControllerBase
     [HttpPost(Name = "PostCep")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<CepResponse<Cep>>> AddCep([FromBody] CepBase cep)
     {
         var cepResult = await _service.AddCep(cep);
-        if (cepResult.StatusCode == HttpStatusCode.BadRequest) return BadRequest(cepResult);
-        return CreatedAtRoute("GetCep", new { cep = cep.Cep }, cepResult);
+        return cepResult.StatusCode switch
+        {
+            HttpStatusCode.BadRequest => BadRequest(cepResult),
+            HttpStatusCode.Conflict   => Conflict(cepResult),
+            HttpStatusCode.Created    => CreatedAtRoute("GetCep", new { cep = cep.Cep }, cepResult),
+            _                         => StatusCode(StatusCodes.Status500InternalServerError, cepResult)
+        };
     }
 
     [HttpGet("{cep}", Name = "GetCep")]
