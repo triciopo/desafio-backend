@@ -1,3 +1,5 @@
+using Application;
+using Application.Services;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.OpenApi.Models;
@@ -8,6 +10,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHttpClient();
 builder.Services.AddTransient<DapperDbContext>();
 builder.Services.AddTransient<ICepRepository, CepRepository>();
+builder.Services.AddTransient<ICepService, CepService>();
+
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo

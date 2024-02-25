@@ -20,7 +20,7 @@ public class CepRepository : ICepRepository
         using (var connection = _context.CreateConnection())
         {
             var cepList = await connection.QueryAsync<Cep>(query);
-            return cepList.First();
+            return cepList.FirstOrDefault();
         }
     }
 
