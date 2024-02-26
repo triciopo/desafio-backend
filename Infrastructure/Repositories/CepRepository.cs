@@ -17,11 +17,9 @@ public class CepRepository : ICepRepository
     public async Task<Cep?> GetCep(string cep)
     {
         var query = $"SELECT * FROM cep WHERE cep = '{cep}'";
-        using (var connection = _context.CreateConnection())
-        {
-            var cepList = await connection.QueryAsync<Cep>(query);
-            return cepList.FirstOrDefault();
-        }
+        using var connection = _context.CreateConnection();
+        var cepList = await connection.QueryAsync<Cep>(query);
+        return cepList.FirstOrDefault();
     }
 
     public async Task<Cep> AddCep(Cep cep)
@@ -42,10 +40,8 @@ public class CepRepository : ICepRepository
         parameters.Add("ddd", cep.Ddd, DbType.Int32);
         parameters.Add("siafi", cep.Siafi, DbType.Int32);
 
-        using (var connectin = _context.CreateConnection())
-        {
-            await connectin.ExecuteAsync(query, parameters);
-        }
+        using var connectin = _context.CreateConnection(); 
+        await connectin.ExecuteAsync(query, parameters);
 
         return cep;
     }

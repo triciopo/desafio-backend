@@ -1,5 +1,4 @@
-﻿using System.Net;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Domain.Models;
 using Application.DTOs;
 using Application.Responses;
@@ -20,61 +19,23 @@ public class CepService : ICepService
 
     public async Task<CepResponse<Cep>> AddCep(CepBase cep)
     {
-        if (cep.Cep.Length != 8)
-        {
-            return new CepResponse<Cep>
-            {
-                StatusCode = HttpStatusCode.BadRequest,
-                Message = "CEP inválido!",
-                Data = null
-            };
-        }
-
+        if (cep.Cep.Length != 8) return ResponseHelper.BadRequestResponse<Cep>("CEP inválido!");
         try
         {
             var cepVal = await _repository.GetCep(cep.Cep);
-            if (cepVal != null)
-            {
-                return new CepResponse<Cep>
-                {
-                    StatusCode = HttpStatusCode.Conflict,
-                    Message = "CEP já cadastrado!",
-                    Data = null
-                };
-            }
-        } catch (Exception e)
+            if (cepVal != null) return ResponseHelper.ConflictResponse<Cep>("CEP já cadastrado!");
+        } catch (Exception)
         {
-            return new CepResponse<Cep>
-            {
-                StatusCode = HttpStatusCode.InternalServerError,
-                Message = "Falha ao obter conexão com o banco de dados!",
-                Data = null
-            };
+            return ResponseHelper.InternalServerErrorResponse<Cep>("Falha ao obter conexão com o banco de dados!");
         }
         
-        var client = _clientFactory.CreateClient();
+        using var client = _clientFactory.CreateClient();
         var response = await client.GetAsync($"https://viacep.com.br/ws/{cep.Cep}/json/");
 
-        if (!response.IsSuccessStatusCode)
-        {
-            return new CepResponse<Cep>
-            {
-                StatusCode = response.StatusCode,
-                Message = "Falha ao obter os dados do CEP.",
-                Data = null
-            };
-        }
+        // Viacep retorna um json com a chave "erro" e status 200 quando o CEP não é encontrado
         var json = await response.Content.ReadAsStringAsync();
-        // Viacep retorna um json com a chave "erro" quando o CEP não é encontrado
-        if (json.Contains("erro"))
-        {
-            return new CepResponse<Cep>
-            {
-                StatusCode = HttpStatusCode.NotFound,
-                Message = "CEP não encontrado!",
-                Data = null
-            };
-        }
+        if (!response.IsSuccessStatusCode) return ResponseHelper.InternalServerErrorResponse<Cep>("Falha ao obter os dados do CEP!");
+        if (json.Contains("erro")) return ResponseHelper.NotFoundResponse<Cep>("CEP não encontrado!");
         
         var cepDto = JsonSerializer.Deserialize<CepDto>(json);
         var address = new Cep
@@ -94,62 +55,24 @@ public class CepService : ICepService
         {
             await _repository.AddCep(address);
         }
-        catch (Exception e)
+        catch (Exception)
         {
-            return new CepResponse<Cep>
-            {
-                StatusCode = HttpStatusCode.InternalServerError,
-                Message = "Falha ao obter conexão com o banco de dados!",
-                Data = null
-            };
+            return ResponseHelper.InternalServerErrorResponse<Cep>("Falha ao adicionar o CEP!");
         }
-        return new CepResponse<Cep>
-        {
-            StatusCode = HttpStatusCode.Created,
-            Message = "CEP adicionado com sucesso!",
-            Data = address
-        };
+        return ResponseHelper.SuccessCreatedResponse(address, "CEP adicionado com sucesso!");
     }
 
     public async Task<CepResponse<Cep>> GetCep(string cep)
     {
-        if (cep.Length != 8)
-        {
-            return new CepResponse<Cep>
-            {
-                StatusCode = HttpStatusCode.BadRequest,
-                Message = "CEP inválido!",
-                Data = null
-            };
-        }
-
+        if (cep.Length != 8) return ResponseHelper.BadRequestResponse<Cep>("CEP inválido!");
         try
         {
             var cepVal = await _repository.GetCep(cep);
-            if (cepVal != null)
-            {
-                return new CepResponse<Cep>
-                {
-                    StatusCode = HttpStatusCode.OK,
-                    Message = "CEP obtido com sucesso!",
-                    Data = cepVal
-                };
-            }
-        } catch (Exception e)
+            if (cepVal != null) return ResponseHelper.SuccessResponse(cepVal, "CEP obtido com sucesso!");
+        } catch (Exception)
         {
-            return new CepResponse<Cep>
-            {
-                StatusCode = HttpStatusCode.InternalServerError,
-                Message = "Falha ao obter conexão com o banco de dados!",
-                Data = null
-            };
+            return ResponseHelper.InternalServerErrorResponse<Cep>("Falha ao obter conexão com o banco de dados!");
         }
-        
-        return new CepResponse<Cep>
-        {
-            StatusCode = HttpStatusCode.NotFound,
-            Message = "CEP não encontrado!",
-            Data = null
-        };
+        return ResponseHelper.NotFoundResponse<Cep>("CEP não encontrado!");
     }
 }
