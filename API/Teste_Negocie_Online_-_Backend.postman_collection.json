@@ -1,0 +1,58 @@
+{
+	"info": {
+		"_postman_id": "5a90f910-1a6b-48f0-97e1-5450b4a66979",
+		"name": "Teste Negocie Online - Backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Busca de CEP no Banco de Dados",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://localhost:61997/api/cep",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "61997",
+					"path": [
+						"api",
+						"cep"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Inserção de CEP no Banco de Dados",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"cep\": \"04248000\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:61997/api/cep",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "61997",
+					"path": [
+						"api",
+						"cep"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
